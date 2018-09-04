@@ -1,0 +1,65 @@
+---
+title: "Fungi Network analysis"
+author: "Francesco Delogu"
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: united
+---
+
+# Intro
+
+## Load libraries and setup
+
+```{r load libraries, results='hide', message=F, warning=F}
+library(tidyverse)
+library(WGCNA)
+
+wd <- getwd()
+```
+
+## Load data and preprocessing
+
+```{r load data}
+raw_data <- read.table(paste0(wd, "/data/raw_perseus.txt"), header=T, sep="\t")
+
+df.thermo <- raw_data %>%
+  filter(Organism=="m.thermophila", Secretion=="Y", Unique.peptides>1) %>%
+  select(Uniprot, Bagasse1, Bagasse2, Bagasse3, Birch1, Birch2, Birch3, Spruce1, Spruce2, Spruce3, Glucose1, Glucose2, Glucose3) %>%
+  column_to_rownames(., var="Uniprot")
+
+df.chryso <- raw_data %>%
+  filter(Organism=="p.chrysosporium", Secretion=="Y", Unique.peptides>1) %>%
+  select(Uniprot, Bagasse1, Bagasse2, Bagasse3, Birch1, Birch2, Birch3, Spruce1, Spruce2, Spruce3, Glucose1, Glucose2, Glucose3) %>%
+  column_to_rownames(., var="Uniprot")
+
+df.terreus <- raw_data %>%
+  filter(Organism=="a.terreus", Secretion=="Y", Unique.peptides>1) %>%
+  select(Uniprot, Bagasse1, Bagasse2, Bagasse3, Birch1, Birch2, Birch3, Spruce1, Spruce2, Spruce3, Glucose1, Glucose2, Glucose3) %>%
+  column_to_rownames(., var="Uniprot")
+
+df.jecor <- raw_data %>%
+  filter(Organism=="h.jecorina", Secretion=="Y", Unique.peptides>1) %>%
+  select(Uniprot, Bagasse1, Bagasse2, Bagasse3, Birch1, Birch2, Birch3, Spruce1, Spruce2, Spruce3, Glucose1, Glucose2, Glucose3) %>%
+  column_to_rownames(., var="Uniprot")
+
+df.crassa <- raw_data %>%
+  filter(Organism=="n.crassa", Secretion=="Y", Unique.peptides>1) %>%
+  select(Uniprot, Bagasse1, Bagasse2, Bagasse3, Birch1, Birch2, Birch3, Spruce1, Spruce2, Spruce3, Glucose1, Glucose2, Glucose3) %>%
+  column_to_rownames(., var="Uniprot")
+
+Prot2type <- raw_data$Enzyme.type
+names(Prot2type) <- raw_data$Uniprot
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
