@@ -18,6 +18,7 @@ options(stringsAsFactors=F)
 
 library(tidyverse)
 library(WGCNA)
+library(igraph)
 
 wd <- getwd()
 ```
@@ -184,6 +185,24 @@ for(i in enzyme.names){
 corrplot::corrplot(enzyme.tot)
 
 ```
+
+# Final plot
+
+## Igraph
+
+```{r igraph plot}
+
+enzyme.tot[is.na(enzyme.tot)] <- 0
+
+g <- graph_from_adjacency_matrix(enzyme.tot, mode="undirected", weighted=T)
+E(g)$width <- E(g)$weight*10
+
+l <- layout_with_fr(g)
+plot(g, edge.arrow.size=.4, vertex.shape="none", layout=l)
+
+```
+
+## Cytoscape
 
 ```{r export network}
 
