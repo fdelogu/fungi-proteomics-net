@@ -14,6 +14,8 @@ output:
 ## Load libraries and setup
 
 ```{r load libraries, results='hide', message=F, warning=F}
+options(stringsAsFactors=F)
+
 library(tidyverse)
 library(WGCNA)
 
@@ -22,8 +24,12 @@ wd <- getwd()
 
 ## Load data and preprocessing
 
-```{r load data}
+```{r load data, results='hide', message=F, warning=F}
 raw_data <- read.table(paste0(wd, "/data/raw_perseus.txt"), header=T, sep="\t")
+#for(i in c("Bagasse1", "Bagasse2", "Bagasse3", "Birch1", "Birch2", "Birch3",
+#           "Spruce1", "Spruce2", "Spruce3", "Glucose1", "Glucose2", "Glucose3")){
+#  raw_data[is.na(raw_data[,i]),i] <- 0
+#           }
 
 df.thermo <- raw_data %>%
   filter(Organism=="m.thermophila", Secretion=="Y", Unique.peptides>1) %>%
@@ -54,12 +60,135 @@ Prot2type <- raw_data$Enzyme.type
 names(Prot2type) <- raw_data$Uniprot
 ```
 
-## Including Plots
+# Co-expression networks
 
-You can also embed plots, for example:
+## Network function
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r make.net function}
+
+make.net <- function(df) {
+  expr <- t(df)[,goodGenes(t(df), verbose=0)]
+  expr[is.na(expr)] <- 0
+  adj <- adjacency(expr, type="unsigned")
+  #sort(adj.thermo[upper.tri(adj.thermo)], decreasing=T)[(dim(adj.thermo)[1]**2-dim(adj.thermo)[1])/2/10]
+  return(adj)
+}
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Infer networks
+
+```{r make networks}
+
+adj.thermo <- make.net(df.thermo)
+adj.chryso <- make.net(df.chryso)
+adj.terreus <- make.net(df.terreus)
+adj.jecor <- make.net(df.jecor)
+adj.crassa <- make.net(df.crassa)
+
+```
+
+# Enzyme type networks
+
+## Second network function
+
+```{r make.enzyme.net function}
+
+make.enzyme.net <- function(adj, enzyme.names){
+  enzymes <- Prot2type[colnames(adj)]
+  enzyme.net <- matrix(rep(0, length(enzyme.names)**2), nrow=length(enzyme.names))
+  colnames(enzyme.net) <- enzyme.names
+  rownames(enzyme.net) <- enzyme.names
+  for(i in enzyme.names){
+    for(j in enzyme.names){
+      tot <- table(enzymes)[i]*table(enzymes)[j]
+      #print(tot)
+      if(!is.na(tot)){
+        if(i==j){
+          enzyme.net[i, j] <- (sum(adj[rownames(adj)[enzymes==i], colnames(adj)[enzymes==j]])-table(enzymes)[i])/tot
+        } else {
+          enzyme.net[i, j] <- sum(adj[rownames(adj)[enzymes==i], colnames(adj)[enzymes==j]])/tot
+        }
+      } else {
+        enzyme.net[i, j] <- NA
+      }
+    }
+  }
+  return(enzyme.net)
+}
+
+```
+
+## Infer enzyme netorks
+
+```{r make enzyme networks}
+
+enzyme.names <- unique(raw_data$Enzyme.type[raw_data$Enzyme.type!=""])
+
+enzymes.thermo <- make.enzyme.net(adj.thermo, enzyme.names)
+enzymes.chryso <- make.enzyme.net(adj.chryso, enzyme.names)
+enzymes.terreus <- make.enzyme.net(adj.terreus, enzyme.names)
+enzymes.jecor <- make.enzyme.net(adj.jecor, enzyme.names)
+enzymes.crassa <- make.enzyme.net(adj.crassa, enzyme.names)
+
+```
+
+## Plot enzyme netorks
+
+```{r plot enzyme nets}
+
+corrplot::corrplot(enzymes.thermo)
+corrplot::corrplot(enzymes.chryso)
+corrplot::corrplot(enzymes.terreus)
+corrplot::corrplot(enzymes.jecor)
+corrplot::corrplot(enzymes.crassa)
+
+```
+
+# General network (constrained)
+
+## All proteins network
+
+```{r merge networks}
+
+used_proteins <- c(colnames(adj.thermo), colnames(adj.chryso), colnames(adj.terreus), colnames(adj.jecor), colnames(adj.crassa))
+
+adj.tot <- matrix(rep(0, length(used_proteins)**2), nrow=length(used_proteins))
+colnames(adj.tot) <- used_proteins
+rownames(adj.tot) <- used_proteins
+
+adj.tot[colnames(adj.thermo), colnames(adj.thermo)] <- adj.thermo
+adj.tot[colnames(adj.chryso), colnames(adj.chryso)] <- adj.chryso
+adj.tot[colnames(adj.terreus), colnames(adj.terreus)] <- adj.terreus
+adj.tot[colnames(adj.jecor), colnames(adj.jecor)] <- adj.jecor
+adj.tot[colnames(adj.crassa), colnames(adj.crassa)] <- adj.crassa
+
+```
+
+## All enzymes network
+
+```{r make enzyme total networks}
+
+enzymes.tot <- make.enzyme.net(adj.tot, enzyme.names)
+corrplot::corrplot(enzymes.tot)
+
+enzyme.tot <- matrix(rep(NA, length(enzyme.names)**2), nrow=length(enzyme.names))
+colnames(enzyme.tot) <- enzyme.names
+rownames(enzyme.tot) <- enzyme.names
+for(i in enzyme.names){
+  for(j in enzyme.names){
+    result <- mean(c(enzymes.thermo[i,j], enzymes.chryso[i,j], enzymes.terreus[i,j],
+                              enzymes.jecor[i,j], enzymes.crassa[i,j]), na.rm=T)
+    enzyme.tot[i,j] <- ifelse(is.nan(result), NA, result)
+  }
+}
+corrplot::corrplot(enzyme.tot)
+
+```
+
+```{r export network}
+
+enzyme.tot[is.na(enzyme.tot)] <- 0
+
+cyt = exportNetworkToCytoscape(enzyme.tot, edgeFile = paste0("CytoscapeInput-edges-", "Fungi", ".txt"), nodeFile = paste("CytoscapeInput-nodes-", "Fungi", ".txt"), weighted=T, threshold=0, nodeNames=colnames(enzyme.tot))
+
+```
