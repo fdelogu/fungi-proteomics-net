@@ -33,27 +33,27 @@ raw_data <- read.table(paste0(wd, "/data/raw_perseus.txt"), header=T, sep="\t")
 #           }
 
 df.thermo <- raw_data %>%
-  filter(Organism=="m.thermophila", Secretion=="Y", Unique.peptides>1) %>%
+  filter(Organism=="m.thermophila",  Unique.peptides>1) %>%
   select(Uniprot, Bagasse1, Bagasse2, Bagasse3, Birch1, Birch2, Birch3, Spruce1, Spruce2, Spruce3, Glucose1, Glucose2, Glucose3) %>%
   column_to_rownames(., var="Uniprot")
 
 df.chryso <- raw_data %>%
-  filter(Organism=="p.chrysosporium", Secretion=="Y", Unique.peptides>1) %>%
+  filter(Organism=="p.chrysosporium",  Unique.peptides>1) %>%
   select(Uniprot, Bagasse1, Bagasse2, Bagasse3, Birch1, Birch2, Birch3, Spruce1, Spruce2, Spruce3, Glucose1, Glucose2, Glucose3) %>%
   column_to_rownames(., var="Uniprot")
 
 df.terreus <- raw_data %>%
-  filter(Organism=="a.terreus", Secretion=="Y", Unique.peptides>1) %>%
+  filter(Organism=="a.terreus", Unique.peptides>1) %>%
   select(Uniprot, Bagasse1, Bagasse2, Bagasse3, Birch1, Birch2, Birch3, Spruce1, Spruce2, Spruce3, Glucose1, Glucose2, Glucose3) %>%
   column_to_rownames(., var="Uniprot")
 
 df.jecor <- raw_data %>%
-  filter(Organism=="h.jecorina", Secretion=="Y", Unique.peptides>1) %>%
+  filter(Organism=="h.jecorina", Unique.peptides>1) %>%
   select(Uniprot, Bagasse1, Bagasse2, Bagasse3, Birch1, Birch2, Birch3, Spruce1, Spruce2, Spruce3, Glucose1, Glucose2, Glucose3) %>%
   column_to_rownames(., var="Uniprot")
 
 df.crassa <- raw_data %>%
-  filter(Organism=="n.crassa", Secretion=="Y", Unique.peptides>1) %>%
+  filter(Organism=="n.crassa",  Unique.peptides>1) %>%
   select(Uniprot, Bagasse1, Bagasse2, Bagasse3, Birch1, Birch2, Birch3, Spruce1, Spruce2, Spruce3, Glucose1, Glucose2, Glucose3) %>%
   column_to_rownames(., var="Uniprot")
 
@@ -68,7 +68,7 @@ names(Prot2type) <- raw_data$Uniprot
 ```{r make.net function}
 
 make.net <- function(df) {
-  expr <- t(df)[,goodGenes(t(df), verbose=0)]
+  expr <- t(df)[,goodGenes(t(df), verbose=0, minFraction=1/5)]
   expr[is.na(expr)] <- 0
   adj <- adjacency(expr, type="unsigned")
   #sort(adj.thermo[upper.tri(adj.thermo)], decreasing=T)[(dim(adj.thermo)[1]**2-dim(adj.thermo)[1])/2/10]
@@ -208,6 +208,14 @@ plot(g, edge.arrow.size=.4, vertex.shape="none", layout=l)
 
 enzyme.tot[is.na(enzyme.tot)] <- 0
 
-cyt = exportNetworkToCytoscape(enzyme.tot, edgeFile = paste0("CytoscapeInput-edges-", "Fungi", ".txt"), nodeFile = paste("CytoscapeInput-nodes-", "Fungi", ".txt"), weighted=T, threshold=0, nodeNames=colnames(enzyme.tot))
+cyt = exportNetworkToCytoscape(enzyme.tot, edgeFile = paste0(wd, "/results/CytoscapeInput-edges-", "Fungi", ".txt"), nodeFile = paste0(wd, "/results/CytoscapeInput-nodes-", "Fungi", ".txt"), weighted=T, threshold=0, nodeNames=colnames(enzyme.tot))
+
+```
+
+# Export resuls
+
+```{r export results}
+
+write.csv(enzyme.tot, file=paste0(wd, "/results/enzyme_tot.csv") , quote=F)
 
 ```

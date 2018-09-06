@@ -1,0 +1,10 @@
+nodeName	altName	nodeAttr.nodesPresent...
+Peroxidase	NA	NA
+Oxidoreductase	NA	NA
+CDH	NA	NA
+Oxidase	NA	NA
+Cytochrome	NA	NA
+LPMO	NA	NA
+CBM_only	NA	NA
+esterase	NA	NA
+GH	NA	NA
