@@ -67,10 +67,9 @@ names(Prot2type) <- raw_data$Uniprot
 
 ```{r make.net function}
 
-make.net <- function(df) {
-  expr <- t(df)[,goodGenes(t(df), verbose=0, minFraction=1/5)]
-  expr[is.na(expr)] <- 0
-  adj <- adjacency(expr, type="unsigned")
+make.net <- function(expr) {
+  expr[is.na(expr)] <- (-10)
+  adj <- adjacency(t(expr), type="unsigned")
   #sort(adj.thermo[upper.tri(adj.thermo)], decreasing=T)[(dim(adj.thermo)[1]**2-dim(adj.thermo)[1])/2/10]
   return(adj)
 }
@@ -102,7 +101,6 @@ make.enzyme.net <- function(adj, enzyme.names){
   for(i in enzyme.names){
     for(j in enzyme.names){
       tot <- table(enzymes)[i]*table(enzymes)[j]
-      #print(tot)
       if(!is.na(tot)){
         if(i==j){
           enzyme.net[i, j] <- (sum(adj[rownames(adj)[enzymes==i], colnames(adj)[enzymes==j]])-table(enzymes)[i])/tot
@@ -124,6 +122,7 @@ make.enzyme.net <- function(adj, enzyme.names){
 ```{r make enzyme networks}
 
 enzyme.names <- unique(raw_data$Enzyme.type[raw_data$Enzyme.type!=""])
+enzyme.names <- unique(unlist(str_split(Prot2type[Prot2type!=""], ";")))
 
 enzymes.thermo <- make.enzyme.net(adj.thermo, enzyme.names)
 enzymes.chryso <- make.enzyme.net(adj.chryso, enzyme.names)
@@ -194,7 +193,7 @@ corrplot::corrplot(enzyme.tot)
 
 enzyme.tot[is.na(enzyme.tot)] <- 0
 
-g <- graph_from_adjacency_matrix(enzyme.tot, mode="undirected", weighted=T)
+g <- graph_from_adjacency_matrix(abs(enzyme.tot), mode="undirected", weighted=T)
 E(g)$width <- E(g)$weight*10
 
 l <- layout_with_fr(g)
@@ -212,10 +211,46 @@ cyt = exportNetworkToCytoscape(enzyme.tot, edgeFile = paste0(wd, "/results/Cytos
 
 ```
 
-# Export resuls
+# Significance of the edges
 
-```{r export results}
+## Compute significance
+
+```{r export adjacency}
 
 write.csv(enzyme.tot, file=paste0(wd, "/results/enzyme_tot.csv") , quote=F)
 
+n <- discretize(enzyme.tot, method="interval", labels=F, breaks=101, include.lowest=T)-1
+n <- matrix(n, ncol=sqrt(length(n)))
+colnames(n) <- colnames(enzyme.tot)
+rownames(n) <- rownames(enzyme.tot)
+write.csv(n, file=paste0(wd, "/results/enzyme_tot.csv") , quote=F)
+
+
 ```
+
+Compute significnace with python script
+
+```{r import significance}
+
+enzyme.Ps <- read.csv(paste0(wd, "/results/enzyme_pruned.csv"), row.names=1, header=T)
+enzyme.Ps <- ifelse(enzyme.Ps<0.05, 1, 0)
+enzyme.pruned <- enzyme.tot * enzyme.Ps
+
+sum(enzyme.Ps[upper.tri(enzyme.pruned,diag=T)]==1)
+
+```
+
+## Plot the pruned graph
+
+```{r pruned igraph plot}
+
+g_pruned <- graph_from_adjacency_matrix(enzyme.pruned, mode="undirected", weighted=T)
+E(g_pruned)$width <- E(g_pruned)$weight*10
+
+l <- layout_with_fr(g_pruned)
+plot(g_pruned, edge.arrow.size=.4, vertex.shape="none", layout=l)
+
+```
+
+
+
