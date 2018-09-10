@@ -19,6 +19,7 @@ options(stringsAsFactors=F)
 library(tidyverse)
 library(WGCNA)
 library(igraph)
+library(arules)
 
 wd <- getwd()
 ```
@@ -94,18 +95,20 @@ adj.crassa <- make.net(df.crassa)
 ```{r make.enzyme.net function}
 
 make.enzyme.net <- function(adj, enzyme.names){
-  enzymes <- Prot2type[colnames(adj)]
+  enzymes <- unlist(str_split(Prot2type[colnames(adj)][Prot2type[colnames(adj)]!=""], ";"))
   enzyme.net <- matrix(rep(0, length(enzyme.names)**2), nrow=length(enzyme.names))
   colnames(enzyme.net) <- enzyme.names
   rownames(enzyme.net) <- enzyme.names
   for(i in enzyme.names){
+    selected_i <- unlist(lapply(str_split(Prot2type[colnames(adj)], ";"), function(x){i%in%x}))
     for(j in enzyme.names){
+      selected_j <- unlist(lapply(str_split(Prot2type[colnames(adj)], ";"), function(x){j%in%x}))
       tot <- table(enzymes)[i]*table(enzymes)[j]
       if(!is.na(tot)){
         if(i==j){
-          enzyme.net[i, j] <- (sum(adj[rownames(adj)[enzymes==i], colnames(adj)[enzymes==j]])-table(enzymes)[i])/tot
+          enzyme.net[i, j] <- (sum(adj[rownames(adj)[selected_i], colnames(adj)[selected_j]])-table(enzymes)[i])/tot
         } else {
-          enzyme.net[i, j] <- sum(adj[rownames(adj)[enzymes==i], colnames(adj)[enzymes==j]])/tot
+          enzyme.net[i, j] <- sum(adj[rownames(adj)[selected_i], colnames(adj)[selected_j]])/tot
         }
       } else {
         enzyme.net[i, j] <- NA
@@ -121,7 +124,7 @@ make.enzyme.net <- function(adj, enzyme.names){
 
 ```{r make enzyme networks}
 
-enzyme.names <- unique(raw_data$Enzyme.type[raw_data$Enzyme.type!=""])
+#enzyme.names <- unique(raw_data$Enzyme.type[raw_data$Enzyme.type!=""])
 enzyme.names <- unique(unlist(str_split(Prot2type[Prot2type!=""], ";")))
 
 enzymes.thermo <- make.enzyme.net(adj.thermo, enzyme.names)
@@ -185,7 +188,7 @@ corrplot::corrplot(enzyme.tot)
 
 ```
 
-# Final plot
+# Plots I
 
 ## Igraph
 
@@ -213,38 +216,70 @@ cyt = exportNetworkToCytoscape(enzyme.tot, edgeFile = paste0(wd, "/results/Cytos
 
 # Significance of the edges
 
-## Compute significance
+## Discretization
 
-```{r export adjacency}
+```{r discretize adjacency}
 
-write.csv(enzyme.tot, file=paste0(wd, "/results/enzyme_tot.csv") , quote=F)
-
-n <- discretize(enzyme.tot, method="interval", labels=F, breaks=101, include.lowest=T)-1
-n <- matrix(n, ncol=sqrt(length(n)))
-colnames(n) <- colnames(enzyme.tot)
-rownames(n) <- rownames(enzyme.tot)
-write.csv(n, file=paste0(wd, "/results/enzyme_tot.csv") , quote=F)
+adj.discrete <- discretize(enzyme.tot, method="interval", labels=F, breaks=101, include.lowest=T)-1
+adj.discrete <- matrix(adj.discrete, ncol=sqrt(length(adj.discrete)))
+colnames(adj.discrete) <- colnames(enzyme.tot)
+rownames(adj.discrete) <- rownames(enzyme.tot)
+write.csv(adj.discrete, file=paste0(wd, "/results/enzyme_tot.csv") , quote=F)
 
 
 ```
 
-Compute significnace with python script
+## Significance functions
 
-```{r import significance}
+```{r significance.fun}
 
-enzyme.Ps <- read.csv(paste0(wd, "/results/enzyme_pruned.csv"), row.names=1, header=T)
-enzyme.Ps <- ifelse(enzyme.Ps<0.05, 1, 0)
-enzyme.pruned <- enzyme.tot * enzyme.Ps
+indirect.edge.test <- function(w, ku, kv, q){
+  # q must be half of the sum of all the edges on the graph
+  p <- (ku*kv)/(2*q**2)
+  s <- binom.test(w, q, p, alternative="greater")$p.value
+  return(s)
+}
 
-sum(enzyme.Ps[upper.tri(enzyme.pruned,diag=T)]==1)
+MLF <- function(adj){
+  
+  adj[is.na(adj)] <- 0
+  degs <- colSums(adj) # you may want remove the diagonal
+  q <- round(sum(degs)/2)
+  
+  new_adj <- matrix(NA, nrow=nrow(adj), ncol=ncol(adj))
+  rownames(new_adj) <- rownames(adj)
+  colnames(new_adj) <- colnames(adj)
+  
+  for(i in rownames(adj)){
+    for(j in colnames(adj)){
+      new_adj[i,j] <- indirect.edge.test(adj[i,j], degs[i], degs[j], q)
+    }
+  }
+  return(new_adj)
+}
 
 ```
 
-## Plot the pruned graph
+## Compute significance 
+
+```{r compute significance}
+
+enzymes.Ps <- MLF(adj.discrete)
+
+enzymes.Ps <- ifelse(enzymes.Ps<0.05, 1, 0)
+enzymes.pruned <- enzyme.tot * enzymes.Ps
+
+sum(enzymes.Ps[upper.tri(enzymes.pruned,diag=T)]==1)
+
+```
+
+# Plots II
+
+## Pruned graph plot
 
 ```{r pruned igraph plot}
 
-g_pruned <- graph_from_adjacency_matrix(enzyme.pruned, mode="undirected", weighted=T)
+g_pruned <- graph_from_adjacency_matrix(enzymes.pruned, mode="undirected", weighted=T)
 E(g_pruned)$width <- E(g_pruned)$weight*10
 
 l <- layout_with_fr(g_pruned)
@@ -252,5 +287,16 @@ plot(g_pruned, edge.arrow.size=.4, vertex.shape="none", layout=l)
 
 ```
 
+## Degree distribution plot
 
+```{r plot degrees}
+
+degs <- sort(strength(g), decreasing=T)
+ggplot(data=NULL, aes(y=degs, x=factor(names(degs), levels=names(degs)))) +
+  geom_bar(stat="identity") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(x="Enzyme type", y="Strength", title="Strength Distribution")
+
+```
 
