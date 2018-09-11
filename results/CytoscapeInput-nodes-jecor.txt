@@ -1,0 +1,14 @@
+nodeName	altName	nodeAttr.nodesPresent...
+Esterase_feruloyl	NA	NA
+LPMO	NA	NA
+SOD	NA	NA
+CBM_only	NA	NA
+Esterase_methyl	NA	NA
+GH_xylan	NA	NA
+GH_pectin	NA	NA
+GH_cellulose	NA	NA
+WSC	NA	NA
+GH_arabinan	NA	NA
+GH_chitin	NA	NA
+GH_mannan	NA	NA
+GH_xyloglucan	NA	NA

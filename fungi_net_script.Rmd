@@ -28,10 +28,6 @@ wd <- getwd()
 
 ```{r load data, results='hide', message=F, warning=F}
 raw_data <- read.table(paste0(wd, "/data/raw_perseus.txt"), header=T, sep="\t")
-#for(i in c("Bagasse1", "Bagasse2", "Bagasse3", "Birch1", "Birch2", "Birch3",
-#           "Spruce1", "Spruce2", "Spruce3", "Glucose1", "Glucose2", "Glucose3")){
-#  raw_data[is.na(raw_data[,i]),i] <- 0
-#           }
 
 df.thermo <- raw_data %>%
   filter(Organism=="m.thermophila",  Unique.peptides>1) %>%
@@ -147,6 +143,18 @@ corrplot::corrplot(enzymes.crassa)
 
 ```
 
+## export cytoscape individual networks
+
+```{r cytoscape 5 nets}
+
+cyt = exportNetworkToCytoscape(enzymes.thermo, edgeFile = paste0(wd, "/results/CytoscapeInput-edges-", "thermo", ".txt"), nodeFile = paste0(wd, "/results/CytoscapeInput-nodes-", "thermo", ".txt"), weighted=T, threshold=0, nodeNames=colnames(enzymes.thermo))
+cyt = exportNetworkToCytoscape(enzymes.chryso, edgeFile = paste0(wd, "/results/CytoscapeInput-edges-", "chryso", ".txt"), nodeFile = paste0(wd, "/results/CytoscapeInput-nodes-", "chryso", ".txt"), weighted=T, threshold=0, nodeNames=colnames(enzymes.chryso))
+cyt = exportNetworkToCytoscape(enzymes.terreus, edgeFile = paste0(wd, "/results/CytoscapeInput-edges-", "terreus", ".txt"), nodeFile = paste0(wd, "/results/CytoscapeInput-nodes-", "terreus", ".txt"), weighted=T, threshold=0, nodeNames=colnames(enzymes.terreus))
+cyt = exportNetworkToCytoscape(enzymes.jecor, edgeFile = paste0(wd, "/results/CytoscapeInput-edges-", "jecor", ".txt"), nodeFile = paste0(wd, "/results/CytoscapeInput-nodes-", "jecor", ".txt"), weighted=T, threshold=0, nodeNames=colnames(enzymes.jecor))
+cyt = exportNetworkToCytoscape(enzymes.crassa, edgeFile = paste0(wd, "/results/CytoscapeInput-edges-", "crassa", ".txt"), nodeFile = paste0(wd, "/results/CytoscapeInput-nodes-", "crassa", ".txt"), weighted=T, threshold=0, nodeNames=colnames(enzymes.crassa))
+
+```
+
 # General network (constrained)
 
 ## All proteins network
@@ -211,6 +219,24 @@ plot(g, edge.arrow.size=.4, vertex.shape="none", layout=l)
 enzyme.tot[is.na(enzyme.tot)] <- 0
 
 cyt = exportNetworkToCytoscape(enzyme.tot, edgeFile = paste0(wd, "/results/CytoscapeInput-edges-", "Fungi", ".txt"), nodeFile = paste0(wd, "/results/CytoscapeInput-nodes-", "Fungi", ".txt"), weighted=T, threshold=0, nodeNames=colnames(enzyme.tot))
+
+```
+
+## Export protein counts
+
+```{r export protein counts}
+
+#table(unlist(str_split(raw_data$Enzyme.type[raw_data$Enzyme.type!=""], ";")))
+
+summ_data <- raw_data %>%
+  filter(Enzyme.type!="") %>%
+  select(Enzyme.type, Organism) %>% 
+  separate_rows(Enzyme.type, sep = ";", convert = TRUE) %>%
+  group_by(Enzyme.type, Organism) %>%
+  summarise(N=n()) %>%
+  spread(Organism, N) %>%
+  rowwise() %>%
+  mutate(tot=rowSums(.[2:6], na.rm=T))
 
 ```
 

@@ -1,0 +1,15 @@
+nodeName	altName	nodeAttr.nodesPresent...
+Esterase_feruloyl	NA	NA
+CDH	NA	NA
+Lipase	NA	NA
+Catalase	NA	NA
+Lactonase	NA	NA
+CBM_only	NA	NA
+Esterase_acetyl	NA	NA
+GH_xylan	NA	NA
+GH_pectin	NA	NA
+GH_cellulose	NA	NA
+GH_arabinan	NA	NA
+Esterase_non_carbohydrate	NA	NA
+GH_mannan	NA	NA
+GH_xyloglucan	NA	NA
