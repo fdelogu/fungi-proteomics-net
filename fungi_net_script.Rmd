@@ -120,7 +120,6 @@ make.enzyme.net <- function(adj, enzyme.names){
 
 ```{r make enzyme networks}
 
-#enzyme.names <- unique(raw_data$Enzyme.type[raw_data$Enzyme.type!=""])
 enzyme.names <- unique(unlist(str_split(Prot2type[Prot2type!=""], ";")))
 
 enzymes.thermo <- make.enzyme.net(adj.thermo, enzyme.names)
@@ -226,17 +225,17 @@ cyt = exportNetworkToCytoscape(enzyme.tot, edgeFile = paste0(wd, "/results/Cytos
 
 ```{r export protein counts}
 
-#table(unlist(str_split(raw_data$Enzyme.type[raw_data$Enzyme.type!=""], ";")))
-
 summ_data <- raw_data %>%
   filter(Enzyme.type!="") %>%
   select(Enzyme.type, Organism) %>% 
   separate_rows(Enzyme.type, sep = ";", convert = TRUE) %>%
   group_by(Enzyme.type, Organism) %>%
   summarise(N=n()) %>%
-  spread(Organism, N) %>%
-  rowwise() %>%
-  mutate(tot=rowSums(.[2:6], na.rm=T))
+  spread(Organism, N)
+summ_data[is.na(summ_data)] <- 0
+summ_data <- cbind(as.data.frame(summ_data), tot=rowSums(summ_data[,2:6]))
+
+write.table(summ_data, file=paste0(wd, "/results/Enzyme_counts.txt"), row.names=F, quote=F, sep="\t")
 
 ```
 
@@ -251,7 +250,6 @@ adj.discrete <- matrix(adj.discrete, ncol=sqrt(length(adj.discrete)))
 colnames(adj.discrete) <- colnames(enzyme.tot)
 rownames(adj.discrete) <- rownames(enzyme.tot)
 write.csv(adj.discrete, file=paste0(wd, "/results/enzyme_tot.csv") , quote=F)
-
 
 ```
 
@@ -317,7 +315,7 @@ plot(g_pruned, edge.arrow.size=.4, vertex.shape="none", layout=l)
 
 ```{r plot degrees}
 
-degs <- sort(strength(g), decreasing=T)
+degs <- sort(strength(g_pruned), decreasing=T)
 ggplot(data=NULL, aes(y=degs, x=factor(names(degs), levels=names(degs)))) +
   geom_bar(stat="identity") +
   theme_classic() +
