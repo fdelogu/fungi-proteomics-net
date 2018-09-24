@@ -13,7 +13,6 @@ Other	NA	NA
 Catalase	NA	NA
 SOD	NA	NA
 Lactonase	NA	NA
-CBM_only	NA	NA
 Esterase_methyl	NA	NA
 Esterase_acetyl	NA	NA
 GH_xylan	NA	NA

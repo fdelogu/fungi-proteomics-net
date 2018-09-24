@@ -31,27 +31,27 @@ wd <- getwd()
 raw_data <- read.table(paste0(wd, "/data/raw_perseus.txt"), header=T, sep="\t", quote = "")
 
 df.thermo <- raw_data %>%
-  filter(Organism=="m.thermophila",  Unique.peptides>1) %>%
+  filter(Organism=="m.thermophila") %>%
   select(Uniprot, Bagasse1, Bagasse2, Bagasse3, Birch1, Birch2, Birch3, Spruce1, Spruce2, Spruce3, Glucose1, Glucose2, Glucose3) %>%
   column_to_rownames(., var="Uniprot")
 
 df.chryso <- raw_data %>%
-  filter(Organism=="p.chrysosporium",  Unique.peptides>1) %>%
+  filter(Organism=="p.chrysosporium") %>%
   select(Uniprot, Bagasse1, Bagasse2, Bagasse3, Birch1, Birch2, Birch3, Spruce1, Spruce2, Spruce3, Glucose1, Glucose2, Glucose3) %>%
   column_to_rownames(., var="Uniprot")
 
 df.terreus <- raw_data %>%
-  filter(Organism=="a.terreus", Unique.peptides>1) %>%
+  filter(Organism=="a.terreus") %>%
   select(Uniprot, Bagasse1, Bagasse2, Bagasse3, Birch1, Birch2, Birch3, Spruce1, Spruce2, Spruce3, Glucose1, Glucose2, Glucose3) %>%
   column_to_rownames(., var="Uniprot")
 
 df.jecor <- raw_data %>%
-  filter(Organism=="h.jecorina", Unique.peptides>1) %>%
+  filter(Organism=="h.jecorina") %>%
   select(Uniprot, Bagasse1, Bagasse2, Bagasse3, Birch1, Birch2, Birch3, Spruce1, Spruce2, Spruce3, Glucose1, Glucose2, Glucose3) %>%
   column_to_rownames(., var="Uniprot")
 
 df.crassa <- raw_data %>%
-  filter(Organism=="n.crassa",  Unique.peptides>1) %>%
+  filter(Organism=="n.crassa") %>%
   select(Uniprot, Bagasse1, Bagasse2, Bagasse3, Birch1, Birch2, Birch3, Spruce1, Spruce2, Spruce3, Glucose1, Glucose2, Glucose3) %>%
   column_to_rownames(., var="Uniprot")
 
@@ -157,30 +157,9 @@ cyt = exportNetworkToCytoscape(enzymes.crassa, edgeFile = paste0(wd, "/results/C
 
 # General network (constrained)
 
-## All proteins network
-
-```{r merge networks}
-
-used_proteins <- c(colnames(adj.thermo), colnames(adj.chryso), colnames(adj.terreus), colnames(adj.jecor), colnames(adj.crassa))
-
-adj.tot <- matrix(rep(0, length(used_proteins)**2), nrow=length(used_proteins))
-colnames(adj.tot) <- used_proteins
-rownames(adj.tot) <- used_proteins
-
-adj.tot[colnames(adj.thermo), colnames(adj.thermo)] <- adj.thermo
-adj.tot[colnames(adj.chryso), colnames(adj.chryso)] <- adj.chryso
-adj.tot[colnames(adj.terreus), colnames(adj.terreus)] <- adj.terreus
-adj.tot[colnames(adj.jecor), colnames(adj.jecor)] <- adj.jecor
-adj.tot[colnames(adj.crassa), colnames(adj.crassa)] <- adj.crassa
-
-```
-
 ## All enzymes network
 
 ```{r make enzyme total networks}
-
-enzymes.tot <- make.enzyme.net(adj.tot, enzyme.names)
-corrplot::corrplot(enzymes.tot)
 
 enzyme.tot <- matrix(rep(NA, length(enzyme.names)**2), nrow=length(enzyme.names))
 colnames(enzyme.tot) <- enzyme.names
