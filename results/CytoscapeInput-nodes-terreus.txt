@@ -13,3 +13,4 @@ GH_arabinan	NA	NA
 Esterase_non_carbohydrate	NA	NA
 GH_mannan	NA	NA
 GH_xyloglucan	NA	NA
+PL	NA	NA

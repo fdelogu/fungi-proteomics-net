@@ -20,3 +20,5 @@ Esterase_pectin	NA	NA
 PL_like	NA	NA
 Esterase	NA	NA
 GH_xyloglucan	NA	NA
+GT	NA	NA
+PL	NA	NA

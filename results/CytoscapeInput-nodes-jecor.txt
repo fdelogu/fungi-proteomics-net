@@ -12,3 +12,4 @@ GH_arabinan	NA	NA
 GH_chitin	NA	NA
 GH_mannan	NA	NA
 GH_xyloglucan	NA	NA
+GT	NA	NA

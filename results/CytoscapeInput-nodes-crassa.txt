@@ -9,3 +9,4 @@ GH_unspecific	NA	NA
 GH_cellulose	NA	NA
 GH_arabinan	NA	NA
 GH_mannan	NA	NA
+PL	NA	NA

@@ -20,6 +20,7 @@ library(tidyverse)
 library(WGCNA)
 library(igraph)
 library(arules)
+library(rlist)
 
 wd <- getwd()
 ```
@@ -27,7 +28,7 @@ wd <- getwd()
 ## Load data and preprocessing
 
 ```{r load data, results='hide', message=F, warning=F}
-raw_data <- read.table(paste0(wd, "/data/raw_perseus.txt"), header=T, sep="\t")
+raw_data <- read.table(paste0(wd, "/data/raw_perseus.txt"), header=T, sep="\t", quote = "")
 
 df.thermo <- raw_data %>%
   filter(Organism=="m.thermophila",  Unique.peptides>1) %>%
@@ -293,8 +294,6 @@ enzymes.Ps <- MLF(adj.discrete)
 enzymes.Ps <- ifelse(enzymes.Ps<0.05, 1, 0)
 enzymes.pruned <- enzyme.tot * enzymes.Ps
 
-sum(enzymes.Ps[upper.tri(enzymes.pruned,diag=T)]==1)
-
 ```
 
 # Plots II
@@ -311,11 +310,21 @@ plot(g_pruned, edge.arrow.size=.4, vertex.shape="none", layout=l)
 
 ```
 
+## Cytoscape pruned
+
+```{r export pruned network}
+
+enzymes.pruned[is.na(enzymes.pruned)] <- 0
+
+cyt = exportNetworkToCytoscape(enzymes.pruned, edgeFile = paste0(wd, "/results/CytoscapeInput-edges-", "Fungi_pruned", ".txt"), nodeFile = paste0(wd, "/results/CytoscapeInput-nodes-", "Fungi_pruned", ".txt"), weighted=T, threshold=0, nodeNames=colnames(enzymes.pruned))
+
+```
+
 ## Degree distribution plot
 
 ```{r plot degrees}
 
-degs <- sort(strength(g_pruned), decreasing=T)
+degs <- sort(strength(g), decreasing=T)
 ggplot(data=NULL, aes(y=degs, x=factor(names(degs), levels=names(degs)))) +
   geom_bar(stat="identity") +
   theme_classic() +
