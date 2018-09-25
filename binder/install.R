@@ -1,0 +1,6 @@
+install.packages("rmarkdown")
+install.packages("tidyverse")
+install.packages("WGCNA")
+install.packages("igraph")
+install.packages("arules")
+install.packages("corrplot")
