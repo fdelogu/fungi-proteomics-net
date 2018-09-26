@@ -103,7 +103,11 @@ make.enzyme.net <- function(adj, enzyme.names){
       tot <- table(enzymes)[i]*table(enzymes)[j]
       if(!is.na(tot)){
         if(i==j){
-          enzyme.net[i, j] <- (sum(adj[rownames(adj)[selected_i], colnames(adj)[selected_j]])-table(enzymes)[i])/tot
+          if(tot-table(enzymes)[i]==0){
+            enzyme.net[i, j] <- NA
+          } else {
+            enzyme.net[i, j] <- (sum(adj[rownames(adj)[selected_i], colnames(adj)[selected_j]])-table(enzymes)[i])/(tot-table(enzymes)[i])
+          }
         } else {
           enzyme.net[i, j] <- sum(adj[rownames(adj)[selected_i], colnames(adj)[selected_j]])/tot
         }

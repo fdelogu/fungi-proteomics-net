@@ -14,11 +14,11 @@ Esterase_feruloyl	GT	0.289209723672648	undirected	NA	NA
 Esterase_feruloyl	PL	0.427074669429939	undirected	NA	NA
 Oxidase	Lipase	0.292403744310268	undirected	NA	NA
 Oxidase	Lactonase	0.304220882551621	undirected	NA	NA
-Oxidase	Esterase_methyl	0.199528250828685	undirected	NA	NA
 Oxidase	Esterase_non_carbohydrate	0.128442544585034	undirected	NA	NA
 Oxidase	Esterase	0.302102968513742	undirected	NA	NA
 Oxidase	GH_mannan	0.14029665420153	undirected	NA	NA
 CDH	Lipase	0.693664045137483	undirected	NA	NA
+CDH	GH_cellulose	0.367652128454558	undirected	NA	NA
 CDH	Esterase_non_carbohydrate	0.31553616515688	undirected	NA	NA
 CDH	PL_like	0.472654733716462	undirected	NA	NA
 CDH	GH_xyloglucan	0.712383943390332	undirected	NA	NA
@@ -40,7 +40,6 @@ CDH_like	GH_xyloglucan	0.476139627739284	undirected	NA	NA
 Lipase	Lactonase	0.95534175647971	undirected	NA	NA
 Lipase	Esterase_methyl	0.763419926645537	undirected	NA	NA
 Lipase	Esterase	0.984387418552363	undirected	NA	NA
-Lipase	GH_mannan	0.427087937626057	undirected	NA	NA
 Lipase	PL	0.821574321517217	undirected	NA	NA
 LPMO	Catalase	0.604653583068469	undirected	NA	NA
 LPMO	PL_like	0.419740626023873	undirected	NA	NA
@@ -58,7 +57,6 @@ SOD	GH_unspecific	0.0491123369920434	undirected	NA	NA
 SOD	PL	0.20884951368006	undirected	NA	NA
 Lactonase	PL_like	0.485185751685021	undirected	NA	NA
 Lactonase	Esterase	0.514106531119857	undirected	NA	NA
-Lactonase	PL	0.610914099173686	undirected	NA	NA
 Esterase_methyl	GH_cellulose	0.436028416804944	undirected	NA	NA
 Esterase_methyl	Esterase_non_carbohydrate	0.306196395228723	undirected	NA	NA
 Esterase_methyl	Esterase	0.390274342309229	undirected	NA	NA
